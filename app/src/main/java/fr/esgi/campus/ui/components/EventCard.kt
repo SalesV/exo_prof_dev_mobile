@@ -1,5 +1,6 @@
 package fr.esgi.campus.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,12 +11,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fr.esgi.campus.R
+import fr.esgi.campus.data.sampleEvents
 import fr.esgi.campus.model.Event
 import fr.esgi.campus.ui.theme.CampusTheme
 
@@ -26,8 +32,6 @@ fun EventCard(
     onBook: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isFull = event.capacity == 0
-
     Card(onClick = onClick, modifier = modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.Top) {
@@ -44,51 +48,78 @@ fun EventCard(
                 )
             }
             Text(
-                text = event.location ?: "Lieu à confirmer",
+                text = event.location ?: stringResource(R.string.location_to_be_confirmed),
                 style = MaterialTheme.typography.bodyMedium
             )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (isFull) "Complet" else "${event.capacity} places",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isFull) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                SeatsLabel(
+                    capacity = event.capacity,
+                    modifier = Modifier.weight(1f)
                 )
-                Button(onClick = onBook, enabled = !isFull) {
-                    Text("Réserver")
+                Button(onClick = onBook, enabled = event.capacity > 0) {
+                    Text(stringResource(R.string.book))
                 }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-private fun EventCardPreview() {
-    CampusTheme {
-        EventCard(
-            event = Event(id = 1, title = "Conférence Kotlin", category = "TECH", location = "Salle 204", capacity = 120),
-            onClick = {},
-            onBook = {},
-            modifier = Modifier.padding(16.dp)
+fun SeatsLabel(
+    capacity: Int,
+    modifier: Modifier = Modifier
+) {
+    if (capacity == 0) {
+        Text(
+            text = stringResource(R.string.event_full),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            modifier = modifier
+        )
+    } else {
+        Text(
+            text = pluralStringResource(R.plurals.available_seats, capacity, capacity),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier
         )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "Clair", showBackground = true)
+@Preview(name = "Sombre", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun EventCardPreview() {
+    CampusTheme {
+        Surface {
+            EventCard(
+                event = sampleEvents[0],
+                onClick = {},
+                onBook = {},
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
+@Preview(name = "Complet clair", showBackground = true)
+@Preview(name = "Complet sombre", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun EventCardFullPreview() {
     CampusTheme {
-        EventCard(
-            event = Event(id = 2, title = "Atelier Compose", category = "TECH", location = "Lab 3", capacity = 0),
-            onClick = {},
-            onBook = {},
-            modifier = Modifier.padding(16.dp)
-        )
+        Surface {
+            EventCard(
+                event = sampleEvents[1],
+                onClick = {},
+                onBook = {},
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 }
